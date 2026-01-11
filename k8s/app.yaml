@@ -1,0 +1,36 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: rate-limiter-service
+spec:
+  type: LoadBalancer       # <--- Magic! Exposes this to your laptop (localhost)
+  selector:
+    app: rate-limiter
+  ports:
+    - protocol: TCP
+      port: 80             # External port (http://localhost:80)
+      targetPort: 8000     # Internal container port
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rate-limiter
+spec:
+  replicas: 3              # <--- We are running 3 copies!
+  selector:
+    matchLabels:
+      app: rate-limiter
+  template:
+    metadata:
+      labels:
+        app: rate-limiter
+    spec:
+      containers:
+        - name: app
+          image: rate-limiter:v1  # <--- The image we built earlier
+          imagePullPolicy: Never  # <--- Important! Tells K8s to use local image, not download from internet
+          ports:
+            - containerPort: 8000
+          env:
+            - name: REDIS_HOST    # <--- We tell Python where Redis is
+              value: "redis-service"

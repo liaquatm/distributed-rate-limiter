@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  # Service 1: Our FastAPI Application
+  app:
+    build: .             # Build the Dockerfile in the current directory
+    ports:
+      - "8000:8000"      # Map laptop port 8000 -> container port 8000
+    volumes:
+      - ./app:/app/app   # Syncs your code live! (No need to rebuild on every change)
+    environment:
+      - REDIS_HOST=redis # We pass the hostname as an environment variable
+    depends_on:
+      - redis            # Wait for redis to start before starting app
+    # OVERRIDE the default command to enable hot-reloading
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+
+  # Service 2: Redis Database
+  redis:
+    image: "redis:alpine" # Use the official lightweight Redis image
+    ports:
+      - "6379:6379"       # Expose Redis port (optional, good for debugging)
