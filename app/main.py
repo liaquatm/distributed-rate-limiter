@@ -8,7 +8,10 @@ app = FastAPI()
 redis_host = os.getenv("REDIS_HOST", "localhost")
 r = redis.Redis(host=redis_host, port=6379, decode_responses=True)
 
-limiter = RateLimiter(redis_client=r, limit=5, window=60)
+# Token Bucket
+# Rate 1.0 = 1 token per second
+# Capacity 10 = Max burst of 10 requests at once
+limiter = RateLimiter(redis_client=r, rate=1.0, capacity=10)
 
 @app.get("/")
 def health_check():
